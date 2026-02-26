@@ -259,3 +259,7 @@ a:hover{ text-decoration:underline; }
   color: rgba(34,197,94,0.95);
   background: rgba(34,197,94,0.12);
 }
+
+option{
+   color: black;
+}

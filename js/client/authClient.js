@@ -5,7 +5,7 @@ class AuthClient {
   }
 
   register(username, password, callback) {
-    this.api.request("POST", "http://auth/register", { username: username, password: password }, cb);
+    this.api.request("POST", "http://auth/register", { username: username, password: password }, callback);
   }
 
   login(username, password, callback) {
