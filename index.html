@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Task Manager SPA</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- כל השכבות שכבר בנית -->
+  <script src="js/db/UsersDB.js"></script>
+  <script src="js/db/TasksDB.js"></script>
+  <script src="js/db/UsersApiDB.js"></script>
+  <script src="js/db/TasksApiDB.js"></script>
+
+  <script src="js/server/HttpResponse.js"></script>
+  <script src="js/server/SessionStore.js"></script>
+  <script src="js/server/AuthServer.js"></script>
+  <script src="js/server/AppServer.js"></script>
+
+  <script src="js/network/NetworkConfig.js"></script>
+  <script src="js/network/ServerRouter.js"></script>
+  <script src="js/network/Network.js"></script>
+
+  <script src="js/fajax/FXMLHttpRequest.js"></script>
+
+  <!-- client -->
+  <script src="js/client/sessionClient.js"></script>
+  <script src="js/client/fajaxClient.js"></script>
+  <script src="js/client/authClient.js"></script>
+  <script src="js/client/tasksClient.js"></script>
+
+  <!-- views + spa -->
+  <script src="js/views/loginView.js"></script>
+  <script src="js/views/registerView.js"></script>
+  <script src="js/views/tasksView.js"></script>
+  <script src="js/spa/router.js"></script>
+  <script src="js/spa/app.js"></script>
+</body>
+</html>
