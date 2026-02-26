@@ -36,7 +36,7 @@ class AuthServer {
       var user = UsersApiDB.createUser(username, password);
       return makeResponse(201, { message: "Registered", data: { userId: user.id } });
     } catch (e) {
-      // כפילות שם משתמש
+      // check if error is about existing username
       if (String(e.message || "").toLowerCase().indexOf("exists") !== -1) {
         return makeResponse(409, { message: "Username already exists", data: null });
       }

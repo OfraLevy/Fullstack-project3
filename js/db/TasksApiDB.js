@@ -3,7 +3,7 @@ class TasksApiDB {
     return TasksDB.create(ownerId, data);
   }
 
-  static list(ownerId) {
+  static taskList(ownerId) {
     return TasksDB.getByOwner(ownerId);
   }
 

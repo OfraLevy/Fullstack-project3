@@ -1,63 +1,63 @@
 // js/fajax/testFajax.js
 localStorage.clear();
 
-function post(url, body, token, cb) {
+function post(url, body, token, callback) {
   var xhr = new FXMLHttpRequest();
   xhr.open("POST", url);
   xhr.setRequestHeader("Content-Type", "application/json");
   if (token) xhr.setRequestHeader("Authorization", "Bearer " + token);
 
   xhr.onload = function () {
-    cb(null, { status: xhr.status, body: JSON.parse(xhr.responseText) });
+    callback(null, { status: xhr.status, body: JSON.parse(xhr.responseText) });
   };
   xhr.onerror = function (e) {
-    cb(e || new Error("Network error"), null);
+    callback(e || new Error("Network error"), null);
   };
 
   xhr.send(body);
 }
 
-function get(url, token, cb) {
+function get(url, token, callback) {
   var xhr = new FXMLHttpRequest();
   xhr.open("GET", url);
   if (token) xhr.setRequestHeader("Authorization", "Bearer " + token);
 
   xhr.onload = function () {
-    cb(null, { status: xhr.status, body: JSON.parse(xhr.responseText) });
+    callback(null, { status: xhr.status, body: JSON.parse(xhr.responseText) });
   };
   xhr.onerror = function (e) {
-    cb(e || new Error("Network error"), null);
+    callback(e || new Error("Network error"), null);
   };
 
   xhr.send(null);
 }
 
-function put(url, body, token, cb) {
+function put(url, body, token, callback) {
   var xhr = new FXMLHttpRequest();
   xhr.open("PUT", url);
   xhr.setRequestHeader("Content-Type", "application/json");
   if (token) xhr.setRequestHeader("Authorization", "Bearer " + token);
 
   xhr.onload = function () {
-    cb(null, { status: xhr.status, body: JSON.parse(xhr.responseText) });
+    callback(null, { status: xhr.status, body: JSON.parse(xhr.responseText) });
   };
   xhr.onerror = function (e) {
-    cb(e || new Error("Network error"), null);
+    callback(e || new Error("Network error"), null);
   };
 
   xhr.send(body);
 }
 
-function del(url, token, cb) {
+function del(url, token, callback) {
   var xhr = new FXMLHttpRequest();
   xhr.open("DELETE", url);
   if (token) xhr.setRequestHeader("Authorization", "Bearer " + token);
 
   xhr.onload = function () {
-    cb(null, { status: xhr.status, body: JSON.parse(xhr.responseText) });
+    callback(null, { status: xhr.status, body: JSON.parse(xhr.responseText) });
   };
   xhr.onerror = function (e) {
-    cb(e || new Error("Network error"), null);
+    callback(e || new Error("Network error"), null);
   };
 
   xhr.send(null);

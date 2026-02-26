@@ -10,7 +10,7 @@ class AppServer {
         return makeResponse(400, { message: "Bad request", data: null });
       }
 
-      // Authorization חובה לכל דבר כאן
+      // Authorization
       var auth = this._authorize(req);
       if (!auth.ok) return auth.res;
 
@@ -50,7 +50,7 @@ class AppServer {
 
   _listTasks(req, userId) {
     var q = (req.query && req.query.search) ? String(req.query.search) : "";
-    var tasks = q ? TasksApiDB.search(userId, q) : TasksApiDB.list(userId);
+    var tasks = q ? TasksApiDB.search(userId, q) : TasksApiDB.taskList(userId);
     return makeResponse(200, { message: "OK", data: tasks });
   }
 
