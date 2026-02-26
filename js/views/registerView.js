@@ -5,39 +5,9 @@ class RegisterView {
   }
 
   render(root) {
-    root.innerHTML = `
-      <div class="card">
-        <div class="card-header">
-          <div class="brand">
-            <h1>Create account</h1>
-            <p>Register a new user</p>
-          </div>
-          <a href="#/login" class="pill">Back</a>
-        </div>
-
-        <div class="card-body">
-          <div class="grid">
-            <div class="field">
-              <div class="label">Username</div>
-              <input class="input" id="u" placeholder="username" />
-            </div>
-            <div class="field">
-              <div class="label">Password</div>
-              <input class="input" id="p" placeholder="password" type="password" />
-            </div>
-          </div>
-
-          <div style="height:12px"></div>
-
-          <div class="row">
-            <button class="btn primary" id="regBtn">Register</button>
-            <a href="#/login">Already have an account?</a>
-          </div>
-
-          <div id="msg" class="toast muted" style="display:none"></div>
-        </div>
-      </div>
-    `;
+    var tpl = document.getElementById("tpl-register");
+    root.innerHTML = "";
+    root.appendChild(tpl.content.cloneNode(true));
 
     var self = this;
 

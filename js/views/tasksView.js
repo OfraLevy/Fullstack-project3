@@ -10,11 +10,17 @@ class TasksView {
     this._getSeq = 0;
     this._activeGetSeq = 0;
 
-    // Fine-grained locks
+    // Fine-grained locks + edit state
     this._locks = {
-      list: false,       // for refresh/search/list only
-      create: false,     // add button
-      row: {}            // per task id: {toggle:true, del:true}
+      list: false,
+      create: false,
+      row: {} // per task id: {toggle, del, edit, save}
+    };
+
+    this._editing = {
+      id: null,
+      title: "",
+      priority: "med"
     };
   }
 
@@ -24,55 +30,9 @@ class TasksView {
       return;
     }
 
-    root.innerHTML = `
-      <div class="card">
-        <div class="card-header">
-          <div class="brand">
-            <h1>Task Manager</h1>
-            <p>Your tasks, synced via Fake-AJAX + Network</p>
-          </div>
-
-          <div class="row">
-            <span class="pill" id="netState"><span class="spinner" style="display:none"></span><span>Ready</span></span>
-            <button class="btn" id="logoutBtn">Logout</button>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="grid">
-            <div class="field">
-              <div class="label">New task title</div>
-              <input class="input" id="title" placeholder="e.g. Finish UI" />
-            </div>
-            <div class="row" style="align-items:flex-end;">
-              <button class="btn primary" id="addBtn">Add</button>
-              <span class="pill" id="addHint">Add is per-action locked</span>
-            </div>
-          </div>
-
-          <div style="height:12px"></div>
-
-          <div class="row">
-            <input class="input" style="flex:1" id="search" placeholder="Search..." />
-            <button class="btn" id="searchBtn">Search</button>
-            <button class="btn" id="refreshBtn">Refresh</button>
-          </div>
-
-          <div id="msg" class="toast muted" style="display:none"></div>
-
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Status</th>
-                <th>Title</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    `;
+    var tpl = document.getElementById("tpl-tasks");
+    root.innerHTML = "";
+    root.appendChild(tpl.content.cloneNode(true));
 
     var self = this;
 
@@ -98,7 +58,6 @@ class TasksView {
       self._loadSearch(root, q);
     };
 
-    // initial
     this._loadList(root);
   }
 
@@ -134,7 +93,9 @@ class TasksView {
   }
 
   _ensureRowLock(taskId) {
-    if (!this._locks.row[taskId]) this._locks.row[taskId] = { toggle: false, del: false };
+    if (!this._locks.row[taskId]) {
+      this._locks.row[taskId] = { toggle: false, del: false, edit: false, save: false };
+    }
   }
 
   // ---------- Race-safe GETs ----------
@@ -147,9 +108,7 @@ class TasksView {
   }
 
   _finishGetIfCurrent(root, seq, labelAfter) {
-    // only the latest GET is allowed to update UI state
     if (seq !== this._activeGetSeq) return false;
-
     this._setListLock(root, false);
     this._setNetState(root, false, labelAfter || "Ready");
     return true;
@@ -161,7 +120,6 @@ class TasksView {
     this._showMsg(root, "muted", "Fetching list...");
 
     this.tasks.list(function (err, res) {
-      // ignore stale response (race condition handling)
       if (seq !== self._activeGetSeq) return;
 
       if (err) {
@@ -210,12 +168,14 @@ class TasksView {
     });
   }
 
-  // ---------- Mutations with fine-grained locks ----------
+  // ---------- Create ----------
   _onCreate(root) {
     var self = this;
     if (this._locks.create) return;
 
     var title = root.querySelector("#title").value.trim();
+    var prio = root.querySelector("#prio").value || "med";
+
     if (!title) {
       this._showMsg(root, "bad", "Title is required");
       return;
@@ -225,7 +185,7 @@ class TasksView {
     this._setNetState(root, true, "Creating task...");
     this._showMsg(root, "muted", "Creating...");
 
-    this.tasks.create({ title: title }, function (err, res) {
+    this.tasks.create({ title: title, priority: prio }, function (err, res) {
       self._setCreateLock(root, false);
       self._setNetState(root, false, "Ready");
 
@@ -233,12 +193,66 @@ class TasksView {
       if (res.status >= 400) return self._showMsg(root, "bad", (res.body && res.body.message) || "Create failed");
 
       root.querySelector("#title").value = "";
+      root.querySelector("#prio").value = "med";
       self._showMsg(root, "good", "Created");
-      // reload list (race-safe)
       self._loadList(root);
     });
   }
 
+  // ---------- Edit flow ----------
+  _startEdit(root, task) {
+    // allow only one row in edit at a time (keeps UI simple + avoids races)
+    this._editing.id = task.id;
+    this._editing.title = task.title || "";
+    this._editing.priority = task.priority || "med";
+    this._loadList(root); // re-render will show edit row
+  }
+
+  _cancelEdit(root) {
+    this._editing.id = null;
+    this._editing.title = "";
+    this._editing.priority = "med";
+    this._loadList(root);
+  }
+
+  _saveEdit(root, taskId) {
+    var self = this;
+    this._ensureRowLock(taskId);
+    if (this._locks.row[taskId].save) return;
+
+    var row = root.querySelector('tr[data-id="' + taskId + '"]');
+    if (!row) return;
+
+    var newTitle = row.querySelector('input[data-edit="title"]').value.trim();
+    var newPrio = row.querySelector('select[data-edit="prio"]').value;
+
+    if (!newTitle) {
+      this._showMsg(root, "bad", "Title is required");
+      return;
+    }
+
+    this._locks.row[taskId].save = true;
+    this._renderRowDisabledState(root, taskId);
+
+    this.tasks.update(taskId, { title: newTitle, priority: newPrio }, function (err, res) {
+      self._locks.row[taskId].save = false;
+
+      if (err) {
+        self._renderRowDisabledState(root, taskId);
+        return self._showMsg(root, "bad", err.message);
+      }
+      if (res.status >= 400) {
+        self._renderRowDisabledState(root, taskId);
+        return self._showMsg(root, "bad", (res.body && res.body.message) || "Update failed");
+      }
+
+      self._showMsg(root, "good", "Updated");
+      self._editing.id = null;
+      self._loadList(root);
+    });
+  }
+
+  // ---------- Mutations ----------
   _onToggle(root, task) {
     var self = this;
     this._ensureRowLock(task.id);
@@ -275,6 +289,10 @@ class TasksView {
       if (res.status >= 400) return self._showMsg(root, "bad", (res.body && res.body.message) || "Delete failed");
 
       self._showMsg(root, "good", "Deleted");
+
+      // if deleted row was in edit mode – exit edit
+      if (self._editing.id === task.id) self._editing.id = null;
+
       self._loadList(root);
     });
   }
@@ -283,12 +301,19 @@ class TasksView {
     var row = root.querySelector('tr[data-id="' + taskId + '"]');
     if (!row) return;
 
+    this._ensureRowLock(taskId);
+
     var toggleBtn = row.querySelector('[data-act="toggle"]');
     var delBtn = row.querySelector('[data-act="del"]');
+    var editBtn = row.querySelector('[data-act="edit"]');
+    var saveBtn = row.querySelector('[data-act="save"]');
+    var cancelBtn = row.querySelector('[data-act="cancel"]');
 
-    this._ensureRowLock(taskId);
-    toggleBtn.disabled = this._locks.row[taskId].toggle;
-    delBtn.disabled = this._locks.row[taskId].del;
+    if (toggleBtn) toggleBtn.disabled = this._locks.row[taskId].toggle || this._locks.row[taskId].save;
+    if (delBtn) delBtn.disabled = this._locks.row[taskId].del || this._locks.row[taskId].save;
+    if (editBtn) editBtn.disabled = (this._editing.id && this._editing.id !== taskId) || this._locks.row[taskId].save;
+    if (saveBtn) saveBtn.disabled = this._locks.row[taskId].save;
+    if (cancelBtn) cancelBtn.disabled = this._locks.row[taskId].save;
   }
 
   // ---------- Render ----------
@@ -306,12 +331,53 @@ class TasksView {
           ? '<span class="badge done">Done</span>'
           : '<span class="badge todo">Todo</span>';
 
+        var pr = (task.priority || "med");
+        var prText = pr === "high" ? "High" : (pr === "low" ? "Low" : "Medium");
+        var prClass = pr === "high" ? "prio-high" : (pr === "low" ? "prio-low" : "prio-med");
+        var prHtml = '<span class="badge ' + prClass + '">' + prText + "</span>";
+
+        // edit row?
+        if (self._editing.id === task.id) {
+          tr.innerHTML = `
+            <td>${statusHtml}</td>
+            <td>
+              <select class="input" data-edit="prio" style="max-width:160px">
+                <option value="low">Low</option>
+                <option value="med">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </td>
+            <td>
+              <input class="input" data-edit="title" value="${self._escape(self._editing.title)}" />
+            </td>
+            <td>
+              <div class="row">
+                <button class="btn primary" data-act="save">Save</button>
+                <button class="btn" data-act="cancel">Cancel</button>
+              </div>
+            </td>
+          `;
+
+          // set current priority in select
+          tr.querySelector('select[data-edit="prio"]').value = self._editing.priority || "med";
+
+          tr.querySelector('[data-act="save"]').onclick = function () { self._saveEdit(root, task.id); };
+          tr.querySelector('[data-act="cancel"]').onclick = function () { self._cancelEdit(root); };
+
+          tbody.appendChild(tr);
+          self._renderRowDisabledState(root, task.id);
+          return;
+        }
+
+        // normal row
         tr.innerHTML = `
           <td>${statusHtml}</td>
-          <td>${this._escape(task.title)}</td>
+          <td>${prHtml}</td>
+          <td>${self._escape(task.title)}</td>
           <td>
             <div class="row">
               <button class="btn success" data-act="toggle">${task.done ? "Undo" : "Done"}</button>
+              <button class="btn" data-act="edit">Edit</button>
               <button class="btn danger" data-act="del">Delete</button>
             </div>
           </td>
@@ -319,12 +385,11 @@ class TasksView {
 
         tr.querySelector('[data-act="toggle"]').onclick = function () { self._onToggle(root, task); };
         tr.querySelector('[data-act="del"]').onclick = function () { self._onDelete(root, task); };
+        tr.querySelector('[data-act="edit"]').onclick = function () { self._startEdit(root, task); };
 
         tbody.appendChild(tr);
-
-        // apply locks if exist
         self._renderRowDisabledState(root, task.id);
-      }).call(this, tasks[i]);
+      })(tasks[i]);
     }
   }
 

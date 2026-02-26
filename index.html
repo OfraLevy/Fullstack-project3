@@ -12,8 +12,137 @@
     </div>
   </div>
   <div id="app"></div>
+  <template id="tpl-login">
+  <div class="auth-wrap">
+    <div class="card">
+      <div class="card-header">
+        <div class="brand">
+          <h1>Task Manager</h1>
+          <p>Login to continue</p>
+        </div>
+        <span class="pill">Fake Network • Fake AJAX</span>
+      </div>
+      <div class="card-body">
+        <div class="grid">
+          <div class="field">
+            <div class="label">Username</div>
+            <input class="input" id="u" placeholder="username" />
+          </div>
+          <div class="field">
+            <div class="label">Password</div>
+            <input class="input" id="p" placeholder="password" type="password" />
+          </div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="row">
+          <button class="btn primary" id="loginBtn">Login</button>
+          <a href="#/register">Create account</a>
+        </div>
+        <div id="msg" class="toast muted" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</template>
 
-  <!-- כל השכבות שכבר בנית -->
+<template id="tpl-register">
+  <div class="auth-wrap">
+    <div class="card">
+      <div class="card-header">
+        <div class="brand">
+          <h1>Create account</h1>
+          <p>Register a new user</p>
+        </div>
+        <a href="#/login" class="pill">Back</a>
+      </div>
+      <div class="card-body">
+        <div class="grid">
+          <div class="field">
+            <div class="label">Username</div>
+            <input class="input" id="u" placeholder="username" />
+          </div>
+          <div class="field">
+            <div class="label">Password</div>
+            <input class="input" id="p" placeholder="password" type="password" />
+          </div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="row">
+          <button class="btn primary" id="regBtn">Register</button>
+          <a href="#/login">Already have an account?</a>
+        </div>
+        <div id="msg" class="toast muted" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-tasks">
+  <div class="card">
+    <div class="card-header">
+      <div class="brand">
+        <h1>Task Manager</h1>
+        <p>Your tasks, synced via Fake-AJAX + Network</p>
+      </div>
+
+      <div class="row">
+        <span class="pill" id="netState">
+          <span class="spinner" style="display:none"></span>
+          <span>Ready</span>
+        </span>
+        <button class="btn" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      <div class="row">
+        <input class="input" style="flex:1" id="search" placeholder="Search..." />
+        <button class="btn" id="searchBtn">Search</button>
+        <button class="btn" id="refreshBtn">Refresh</button>
+      </div>
+
+      <div style="height:18px"></div>
+
+      <div class="grid">
+        <div class="field">
+          <div class="label">New task title</div>
+          <input class="input" id="title" placeholder="e.g. Finish UI" />
+        </div>
+
+        <div class="field">
+          <div class="label">Priority</div>
+          <select class="input" id="prio">
+            <option value="low">Low</option>
+            <option value="med" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="row">
+        <button class="btn primary" id="addBtn">Add</button>
+      </div>
+
+      <div id="msg" class="toast muted" style="display:none"></div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Title</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+
+    </div>
+  </div>
+</template>
+
   <script src="js/db/UsersDB.js"></script>
   <script src="js/db/TasksDB.js"></script>
   <script src="js/db/UsersApiDB.js"></script>

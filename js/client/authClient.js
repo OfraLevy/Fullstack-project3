@@ -4,28 +4,27 @@ class AuthClient {
     this.session = new SessionClient();
   }
 
-  register(username, password, cb) {
+  register(username, password, callback) {
     this.api.request("POST", "http://auth/register", { username: username, password: password }, cb);
   }
 
-  login(username, password, cb) {
+  login(username, password, callback) {
     var self = this;
     this.api.request("POST", "http://auth/login", { username: username, password: password }, function (err, res) {
-      if (err) return cb(err, null);
+      if (err) return callback(err, null);
 
-      // אם הצלחה נשמור session
       if (res.status >= 200 && res.status < 300 && res.body && res.body.data) {
         self.session.set({ token: res.body.data.token, userId: res.body.data.userId });
       }
-      cb(null, res);
+      callback(null, res);
     });
   }
 
-  logout(cb) {
+  logout(callback) {
     var self = this;
     this.api.request("POST", "http://auth/logout", {}, function (err, res) {
       self.session.clear();
-      cb(err, res);
+      callback(err, res);
     });
   }
 }

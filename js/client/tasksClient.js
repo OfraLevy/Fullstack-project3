@@ -3,28 +3,28 @@ class TasksClient {
     this.api = new FajaxClient();
   }
 
-  list(cb) {
-    this.api.request("GET", "http://app/tasks", null, cb);
+  list(callback) {
+    this.api.request("GET", "http://app/tasks", null, callback);
   }
 
-  search(text, cb) {
+  search(text, callback) {
     var url = "http://app/tasks?search=" + encodeURIComponent(text || "");
-    this.api.request("GET", url, null, cb);
+    this.api.request("GET", url, null, callback);
   }
 
-  create(task, cb) {
-    this.api.request("POST", "http://app/tasks", task, cb);
+  create(task, callback) {
+    this.api.request("POST", "http://app/tasks", task, callback);
   }
 
-  update(id, patch, cb) {
-    this.api.request("PUT", "http://app/tasks/" + id, patch, cb);
+  update(id, patch, callback) {
+    this.api.request("PUT", "http://app/tasks/" + id, patch, callback);
   }
 
-  remove(id, cb) {
-    this.api.request("DELETE", "http://app/tasks/" + id, null, cb);
+  remove(id, callback) {
+    this.api.request("DELETE", "http://app/tasks/" + id, null, callback);
   }
 
-  getOne(id, cb) {
-    this.api.request("GET", "http://app/tasks/" + id, null, cb);
+  getOne(id, callback) {
+    this.api.request("GET", "http://app/tasks/" + id, null, callback);
   }
 }

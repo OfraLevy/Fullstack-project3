@@ -5,40 +5,9 @@ class LoginView {
   }
 
   render(root) {
-    root.innerHTML = `
-      <div class="card">
-        <div class="card-header">
-          <div class="brand">
-            <h1>Task Manager</h1>
-            <p>Login to continue</p>
-          </div>
-          <span class="pill">Fake Network • Fake AJAX</span>
-        </div>
-
-        <div class="card-body">
-          <div class="grid">
-            <div class="field">
-              <div class="label">Username</div>
-              <input class="input" id="u" placeholder="username" />
-            </div>
-            <div class="field">
-              <div class="label">Password</div>
-              <input class="input" id="p" placeholder="password" type="password" />
-            </div>
-          </div>
-
-          <div style="height:12px"></div>
-
-          <div class="row">
-            <button class="btn primary" id="loginBtn">Login</button>
-            <a href="#/register">Create account</a>
-          </div>
-
-          <div id="msg" class="toast muted" style="display:none"></div>
-        </div>
-      </div>
-    `;
-
+    var tpl = document.getElementById("tpl-login");
+    root.innerHTML = "";
+    root.appendChild(tpl.content.cloneNode(true));
     var self = this;
 
     function setMsg(type, text){

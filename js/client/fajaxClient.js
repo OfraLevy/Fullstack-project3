@@ -3,11 +3,11 @@ class FajaxClient {
     this.session = new SessionClient();
   }
 
-  request(method, url, body, cb) {
-    this._requestInternal(method, url, body, cb, 0);
+  request(method, url, body, callback) {
+    this._requestInternal(method, url, body, callback, 0);
   }
 
-  _requestInternal(method, url, body, cb, attempt) {
+  _requestInternal(method, url, body, callback, attempt) {
     var xhr = new FXMLHttpRequest();
     xhr.open(method, url);
 
@@ -25,20 +25,20 @@ class FajaxClient {
       try {
         parsed = xhr.responseText ? JSON.parse(xhr.responseText) : null;
       } catch (e) {
-        return cb(new Error("Bad JSON response"), null);
+        return callback(new Error("Bad JSON response"), null);
       }
-      cb(null, { status: xhr.status, body: parsed });
+      callback(null, { status: xhr.status, body: parsed });
     };
 
     xhr.onerror = function () {
       // Retry only for GET (safe), up to 2 retries
       if (String(method).toUpperCase() === "GET" && attempt < 2) {
         setTimeout(function () {
-          self._requestInternal(method, url, body, cb, attempt + 1);
+          self._requestInternal(method, url, body, callback, attempt + 1);
         }, 350);
         return;
       }
-      cb(new Error("Network error (drop)"), null);
+      callback(new Error("Network error (drop)"), null);
     };
 
     xhr.send(body);
